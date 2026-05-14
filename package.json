@@ -65,6 +65,11 @@
         "view": "projectNotesView",
         "contents": "Open a folder or workspace to use Project Notes.\n[Open Folder](command:vscode.openFolder)",
         "when": "workspaceFolderCount == 0"
+      },
+      {
+        "view": "projectNotesView",
+        "contents": "No notes yet. Create one to get started.\n[Create Note](command:project-notes.createNote)",
+        "when": "workspaceFolderCount != 0"
       }
     ],
     "menus": {

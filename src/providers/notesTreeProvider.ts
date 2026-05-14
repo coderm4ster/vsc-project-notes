@@ -17,9 +17,9 @@ export class NoteTreeItem extends vscode.TreeItem {
     }
 }
 
-export class NotesTreeProvider implements vscode.TreeDataProvider<NoteTreeItem> {
-    private readonly _onDidChangeTreeData = new vscode.EventEmitter<NoteTreeItem | undefined | void>();
-    readonly onDidChangeTreeData: vscode.Event<NoteTreeItem | undefined | void> = this._onDidChangeTreeData.event;
+export class NotesTreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+    private readonly _onDidChangeTreeData = new vscode.EventEmitter<vscode.TreeItem | undefined | void>();
+    readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem | undefined | void> = this._onDidChangeTreeData.event;
 
     constructor(private readonly storage: NoteStorage | undefined) {}
 
@@ -27,11 +27,11 @@ export class NotesTreeProvider implements vscode.TreeDataProvider<NoteTreeItem> 
         this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(element: NoteTreeItem): vscode.TreeItem {
+    getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
         return element;
     }
 
-    async getChildren(): Promise<NoteTreeItem[]> {
+    async getChildren(): Promise<vscode.TreeItem[]> {
         if (!this.storage) { return []; }
         const notes = await this.storage.loadIndex();
         return notes
