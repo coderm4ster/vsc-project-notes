@@ -71,6 +71,7 @@ export const NOTE_EDITOR_TEMPLATE = /* html */ `<!DOCTYPE html>
   <textarea id="contentArea" spellcheck="false">{{CONTENT}}</textarea>
   <script>
     const vscode = acquireVsCodeApi();
+    vscode.setState({ noteId: '{{NOTE_ID}}' });
     let saveTimer = null;
     let lastSavedContent = document.getElementById('contentArea').value;
     let lastSavedTitle = document.getElementById('titleInput').value;

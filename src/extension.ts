@@ -26,7 +26,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         return;
     }
 
+    NoteEditorPanel.init(context.workspaceState, context.subscriptions);
+
     const onSaved = () => treeProvider.refresh();
+
+    context.subscriptions.push(
+        vscode.window.registerWebviewPanelSerializer('projectNoteEditor', {
+            async deserializeWebviewPanel(panel, state) {
+                await NoteEditorPanel.restore(panel, state as { noteId?: string }, storage, onSaved);
+            }
+        }),
+    );
 
     context.subscriptions.push(
         vscode.commands.registerCommand('project-notes.createNote', async () => {
