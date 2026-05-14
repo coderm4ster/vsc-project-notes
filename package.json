@@ -69,7 +69,7 @@
       {
         "view": "projectNotesView",
         "contents": "No notes yet. Create one to get started.\n[Create Note](command:project-notes.createNote)",
-        "when": "workspaceFolderCount != 0"
+        "when": "workspaceFolderCount != 0 && projectNotes.empty"
       }
     ],
     "menus": {

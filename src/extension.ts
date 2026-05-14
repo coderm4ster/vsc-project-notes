@@ -12,6 +12,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         await storage.ensureDir();
     }
 
+    const initialNotes = storage ? await storage.loadIndex() : [];
+    await vscode.commands.executeCommand('setContext', 'projectNotes.empty', initialNotes.length === 0);
     const treeProvider = new NotesTreeProvider(storage);
 
     const treeView = vscode.window.createTreeView('projectNotesView', {
@@ -36,6 +38,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 return; // user pressed Escape
             }
             const note = await storage.createNote(title.trim());
+            await vscode.commands.executeCommand('setContext', 'projectNotes.empty', false);
             treeProvider.refresh();
             await NoteEditorPanel.createOrShow(note, storage, onSaved);
         }),
@@ -70,6 +73,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             }
             NoteEditorPanel.closePanel(item.note.id);
             await storage.deleteNote(item.note.id);
+            const remaining = await storage.loadIndex();
+            await vscode.commands.executeCommand('setContext', 'projectNotes.empty', remaining.length === 0);
             treeProvider.refresh();
         }),
     );
