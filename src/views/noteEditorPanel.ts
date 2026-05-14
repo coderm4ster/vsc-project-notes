@@ -54,7 +54,7 @@ export class NoteEditorPanel {
                 const modifiedAt = await this.storage.updateNoteContent(this.note.id, msg.content);
                 if (msg.title !== undefined) {
                     await this.storage.updateNoteTitle(this.note.id, msg.title);
-                    this.panel.title = msg.title || '(Untitled)';
+                    this.panel.title = `Project Notes - ${msg.title || '(Untitled)'}`;
                     this.note = { ...this.note, title: msg.title, modifiedAt };
                 }
                 this.onDidSave();
@@ -81,7 +81,7 @@ export class NoteEditorPanel {
 
         const panel = vscode.window.createWebviewPanel(
             'projectNoteEditor',
-            note.title || '(Untitled)',
+            `Project Notes - ${note.title || '(Untitled)'}`,
             NoteEditorPanel._getOpenColumn() ?? vscode.ViewColumn.Beside,
             {
                 enableScripts: true,
@@ -101,7 +101,7 @@ export class NoteEditorPanel {
 
     updateTitle(title: string): void {
         this.note = { ...this.note, title };
-        this.panel.title = title || '(Untitled)';
+        this.panel.title = `Project Notes - ${title || '(Untitled)'}`;
         this.panel.webview.postMessage({ type: 'updateTitle', title });
     }
 
@@ -138,6 +138,7 @@ export class NoteEditorPanel {
                 panel.dispose();
                 return;
             }
+            panel.title = `Project Notes - ${note.title || '(Untitled)'}`;
             const instance = new NoteEditorPanel(panel, note, storage, onDidSave);
             if (panel.viewColumn !== undefined) { NoteEditorPanel._setLastColumn(panel.viewColumn); }
             NoteEditorPanel.openPanels.set(note.id, instance);
