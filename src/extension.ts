@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { NoteStorage } from './storage/noteStorage';
-import { NotesTreeProvider, NoteTreeItem } from './providers/notesTreeProvider';
+import { NotesWebviewViewProvider } from './providers/notesTreeProvider';
 import { NoteEditorPanel } from './views/noteEditorPanel';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
@@ -14,13 +14,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     const initialNotes = storage ? await storage.loadIndex() : [];
     await vscode.commands.executeCommand('setContext', 'projectNotes.empty', initialNotes.length === 0);
-    const treeProvider = new NotesTreeProvider(storage);
 
-    const treeView = vscode.window.createTreeView('projectNotesView', {
-        treeDataProvider: treeProvider,
-        showCollapseAll: false,
-    });
-    context.subscriptions.push(treeView);
+    const viewProvider = new NotesWebviewViewProvider(storage, context.extensionUri);
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider('projectNotesView', viewProvider, {
+            webviewOptions: { retainContextWhenHidden: true },
+        }),
+    );
 
     if (!storage) {
         return;
@@ -28,7 +28,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     NoteEditorPanel.init(context.workspaceState, context.subscriptions);
 
-    const onSaved = () => treeProvider.refresh();
+    const onSaved = () => void viewProvider.refresh();
 
     context.subscriptions.push(
         vscode.window.registerWebviewPanelSerializer('projectNoteEditor', {
@@ -45,34 +45,43 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 placeHolder: '(Untitled)',
             });
             if (title === undefined) {
-                return; // user pressed Escape
+                return;
             }
             const note = await storage.createNote(title.trim());
             await vscode.commands.executeCommand('setContext', 'projectNotes.empty', false);
-            treeProvider.refresh();
+            await viewProvider.refresh();
             await NoteEditorPanel.createOrShow(note, storage, onSaved);
         }),
 
-        vscode.commands.registerCommand('project-notes.openNote', async (item: NoteTreeItem) => {
-            await NoteEditorPanel.createOrShow(item.note, storage, onSaved);
+        vscode.commands.registerCommand('project-notes.openNote', async (id: string) => {
+            const notes = await storage.loadIndex();
+            const note = notes.find(n => n.id === id);
+            if (!note) { return; }
+            await NoteEditorPanel.createOrShow(note, storage, onSaved);
         }),
 
-        vscode.commands.registerCommand('project-notes.renameNote', async (item: NoteTreeItem) => {
+        vscode.commands.registerCommand('project-notes.renameNote', async (id: string) => {
+            const notes = await storage.loadIndex();
+            const note = notes.find(n => n.id === id);
+            if (!note) { return; }
             const newTitle = await vscode.window.showInputBox({
                 prompt: 'New note title',
-                value: item.note.title,
+                value: note.title,
                 placeHolder: '(Untitled)',
             });
             if (newTitle === undefined) {
                 return;
             }
-            await storage.updateNoteTitle(item.note.id, newTitle.trim());
-            NoteEditorPanel.getOpenPanel(item.note.id)?.updateTitle(newTitle.trim());
-            treeProvider.refresh();
+            await storage.updateNoteTitle(note.id, newTitle.trim());
+            NoteEditorPanel.getOpenPanel(note.id)?.updateTitle(newTitle.trim());
+            await viewProvider.refresh();
         }),
 
-        vscode.commands.registerCommand('project-notes.deleteNote', async (item: NoteTreeItem) => {
-            const label = item.note.title || '(Untitled)';
+        vscode.commands.registerCommand('project-notes.deleteNote', async (id: string) => {
+            const notes = await storage.loadIndex();
+            const note = notes.find(n => n.id === id);
+            if (!note) { return; }
+            const label = note.title || '(Untitled)';
             const answer = await vscode.window.showWarningMessage(
                 `Are you sure you want to delete "${label}"?`,
                 { modal: true },
@@ -81,11 +90,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             if (answer !== 'Delete') {
                 return;
             }
-            NoteEditorPanel.closePanel(item.note.id);
-            await storage.deleteNote(item.note.id);
+            NoteEditorPanel.closePanel(note.id);
+            await storage.deleteNote(note.id);
             const remaining = await storage.loadIndex();
             await vscode.commands.executeCommand('setContext', 'projectNotes.empty', remaining.length === 0);
-            treeProvider.refresh();
+            await viewProvider.refresh();
         }),
     );
 }
