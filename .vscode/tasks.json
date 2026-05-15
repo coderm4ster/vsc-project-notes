@@ -12,6 +12,16 @@
         "reveal": "silent"
       },
       "problemMatcher": "$tsc"
+    },
+    {
+      "label": "Package VSIX",
+      "type": "shell",
+      "command": "vsce package",
+      "presentation": {
+        "reveal": "always",
+        "focus": true
+      },
+      "problemMatcher": []
     }
   ]
 }
