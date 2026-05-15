@@ -2,7 +2,7 @@
   "name": "vsc-project-notes",
   "displayName": "Project Notes",
   "description": "Workspace-specific notes panel for VS Code",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "coderm4ster",
   "engines": {
     "vscode": "^1.85.0"

@@ -26,6 +26,14 @@ This extension does not contribute any settings at this time.
 
 ## Release Notes
 
+### 1.0.2
+
+- Refactor: notes list is now rendered via a dedicated webview using an HTML template, replacing the old tree-based renderer for richer UI and interaction
+- New: welcome message displayed in the notes panel when no notes exist yet
+- New: note editor panel now supports proper initialization and state restoration (persists across panel reloads)
+- Improvement: note panel title now uses the `Project Notes: <note name>` format for clearer identification
+- Improvement: empty-notes context handling updated to correctly toggle the welcome view
+
 ### 1.0.1
 
 - Fixed: `noteEditor.html` was missing from the published extension package (caused `ENOENT` errors in remote/SSH environments)
